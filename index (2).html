@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSEB Electric Fence Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#003f7f">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Kerala State Electricity Board</h1>
+            <div class="subtitle">Electric Fence Monitoring Dashboard</div>
+            <div class="live-indicator">
+                <span class="indicator-dot"></span>
+                Live Updates Every 5 Seconds | Alert Threshold: 13 Amperes
+            </div>
+        </div>
+
+        <div class="alert-banner" id="alertBanner">
+            <div class="alert-content">
+                <span class="alert-icon">⚠️</span>
+                <span class="alert-text">High current detected in multiple locations</span>
+                <button class="alert-close" onclick="closeAlert()">&times;</button>
+            </div>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <h3 id="totalFences">10</h3>
+                <p>Total Fences</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="normalCount" class="normal-stat">7</h3>
+                <p>Normal Status</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="warningCount" class="warning-stat">2</h3>
+                <p>Warning Status</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="criticalCount" class="critical-stat">1</h3>
+                <p>Critical Alerts</p>
+            </div>
+        </div>
+
+        <div class="fence-grid" id="fenceGrid">
+            <!-- Fence cards will be dynamically populated here -->
+        </div>
+
+        <div class="refresh-container">
+            <button class="refresh-btn" onclick="refreshData()">
+                <span class="refresh-icon">↻</span>
+                Refresh Data
+            </button>
+        </div>
+
+        <footer class="footer">
+            <p>&copy; 2025 Kerala State Electricity Board Limited | Smart India Hackathon 2025</p>
+        </footer>
+    </div>
+
+    <!-- AI Chatbot Widget -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-bubble" id="chatBubble">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+        </div>
+        
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <div class="chat-title">
+                    <h3>KSEB AI Assistant</h3>
+                    <p>Ask me about fence monitoring</p>
+                </div>
+                <div class="chat-controls">
+                    <button class="minimize-btn" id="minimizeBtn">−</button>
+                    <button class="close-btn" id="closeBtn">×</button>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        Hello! I'm the KSEB AI Assistant. I can help you understand fence readings, explain alerts, and guide you through our monitoring system. How can I assist you today?
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <span>AI is thinking...</span>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Ask me anything about the monitoring system..." />
+                    <button id="sendBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // KSEB Electric Fence Monitoring System with Google Maps Integration
+        class KSEBMonitoringSystem {
+            constructor() {
+                // Fence data with Google Maps coordinates
+                this.fenceData = [
+                    {
+                        id: "KSEB001",
+                        name: "Thiruvananthapuram Central",
+                        location: "TVM District Office",
+                        current: 11.2,
+                        voltage: 8.5,
+                        status: "normal",
+                        dailyPeak: 12.1,
+                        owner: "District Collector Office",
+                        contact: "91-471-2345678",
+                        coordinates: {
+                            lat: 8.5241,
+                            lng: 76.9366,
+                            address: "District Collector Office, Thiruvananthapuram, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB002",
+                        name: "Kochi Industrial Zone",
+                        location: "Kakkanad IT Park",
+                        current: 14.7,
+                        voltage: 8.3,
+                        status: "critical",
+                        dailyPeak: 15.2,
+                        owner: "IT Park Authority",
+                        contact: "91-484-2345678",
+                        coordinates: {
+                            lat: 10.0261,
+                            lng: 76.3475,
+                            address: "Kakkanad IT Park, Kochi, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB003",
+                        name: "Kozhikode Beach Road",
+                        location: "Beach Road Substation",
+                        current: 9.8,
+                        voltage: 8.7,
+                        status: "normal",
+                        dailyPeak: 11.3,
+                        owner: "Tourism Department",
+                        contact: "91-495-2345678",
+                        coordinates: {
+                            lat: 11.2588,
+                            lng: 75.7804,
+                            address: "Beach Road, Kozhikode, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB004",
+                        name: "Thrissur Cultural Center",
+                        location: "Swaraj Round",
+                        current: 12.9,
+                        voltage: 8.4,
+                        status: "warning",
+                        dailyPeak: 13.4,
+                        owner: "Cultural Affairs Dept",
+                        contact: "91-487-2345678",
+                        coordinates: {
+                            lat: 10.5276,
+                            lng: 76.2144,
+                            address: "Swaraj Round, Thrissur, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB005",
+                        name: "Kollam Port Authority",
+                        location: "Kollam Port Complex",
+                        current: 10.5,
+                        voltage: 8.6,
+                        status: "normal",
+                        dailyPeak: 11.8,
+                        owner: "Port Trust",
+                        contact: "91-474-2345678",
+                        coordinates: {
+                            lat: 8.8932,
+                            lng: 76.6141,
+                            address: "Kollam Port, Kollam, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB006",
+                        name: "Palakkad Railway Junction",
+                        location: "Railway Station Perimeter",
+                        current: 13.2,
+                        voltage: 8.2,
+                        status: "warning",
+                        dailyPeak: 13.8,
+                        owner: "Indian Railways",
+                        contact: "91-491-2345678",
+                        coordinates: {
+                            lat: 10.7760,
+                            lng: 76.6547,
+                            address: "Palakkad Railway Station, Palakkad, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB007",
+                        name: "Malappuram Govt Complex",
+                        location: "District Collectorate",
+                        current: 8.7,
+                        voltage: 8.8,
+                        status: "normal",
+                        dailyPeak: 10.2,
+                        owner: "District Administration",
+                        contact: "91-483-2345678",
+                        coordinates: {
+                            lat: 11.0510,
+                            lng: 76.0711,
+                            address: "District Collectorate, Malappuram, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB008",
+                        name: "Kannur Airport Perimeter",
+                        location: "International Airport",
+                        current: 11.8,
+                        voltage: 8.4,
+                        status: "normal",
+                        dailyPeak: 12.5,
+                        owner: "Airport Authority",
+                        contact: "91-497-2345678",
+                        coordinates: {
+                            lat: 11.9538,
+                            lng: 75.5258,
+                            address: "Kannur International Airport, Kannur, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB009",
+                        name: "Wayanad Tourist Center",
+                        location: "Vythiri Resort Area",
+                        current: 7.9,
+                        voltage: 8.9,
+                        status: "normal",
+                        dailyPeak: 9.1,
+                        owner: "Forest Department",
+                        contact: "91-493-2345678",
+                        coordinates: {
+                            lat: 11.5102,
+                            lng: 76.0142,
+                            address: "Vythiri, Wayanad, Kerala, India"
+                        }
+                    },
+                    {
+                        id: "KSEB010",
+                        name: "Idukki Dam Security",
+                        location: "Dam Perimeter Fence",
+                        current: 12.4,
+                        voltage: 8.3,
+                        status: "normal",
+                        dailyPeak: 13.1,
+                        owner: "Dam Authority",
+                        contact: "91-486-2345678",
+                        coordinates: {
+                            lat: 9.8502,
+                            lng: 76.9710,
+                            address: "Idukki Dam, Idukki, Kerala, India"
+                        }
+                    }
+                ];
+
+                this.alertThreshold = 13.0;
+                this.warningThreshold = 11.0;
+                this.currentPage = window.location.pathname.includes('fence-details') ? 'details' : 'dashboard';
+                
+                this.init();
+            }
+
+            init() {
+                if (this.currentPage === 'dashboard') {
+                    this.initDashboard();
+                } else {
+                    this.initDetailsPage();
+                }
+                
+                // Initialize chatbot
+                this.initChatbot();
+                
+                // Start real-time updates
+                this.startRealTimeUpdates();
+            }
+
+            initDashboard() {
+                this.renderFenceGrid();
+                this.updateStatistics();
+                this.showAlertBanner();
+            }
+
+            initDetailsPage() {
+                this.loadSelectedFenceDetails();
+                this.drawChart();
+            }
+
+            // Function to open Google Maps
+            openGoogleMaps(coordinates, address) {
+                const { lat, lng } = coordinates;
+                // Create Google Maps URL with coordinates and address
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(address)}`;
+                // Open in new tab/window
+                window.open(mapsUrl, '_blank');
+            }
+
+            renderFenceGrid() {
+                const fenceGrid = document.getElementById('fenceGrid');
+                if (!fenceGrid) return;
+
+                fenceGrid.innerHTML = this.fenceData.map(fence => `
+                    <div class="fence-card ${fence.status}" onclick="openFenceDetails('${fence.id}')">
+                        <div class="fence-header">
+                            <div>
+                                <h3 class="fence-name">${fence.name}</h3>
+                                <p class="fence-location">
+                                    <span class="location-text" onclick="event.stopPropagation(); openGoogleMaps('${fence.id}')" title="Click to view on Google Maps">
+                                        📍 ${fence.location}
+                                    </span>
+                                </p>
+                            </div>
+                            <span class="status-indicator ${fence.status}">
+                                ${fence.status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="fence-metrics">
+                            <div class="metric">
+                                <div class="metric-label">Current</div>
+                                <div class="metric-value ${fence.status}">${fence.current}A</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Voltage</div>
+                                <div class="metric-value">${fence.voltage}V</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Owner</div>
+                                <div class="metric-value" style="font-size: 12px;">${fence.owner}</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Daily Peak</div>
+                                <div class="metric-value">${fence.dailyPeak}A</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateStatistics() {
+                const normal = this.fenceData.filter(f => f.status === 'normal').length;
+                const warning = this.fenceData.filter(f => f.status === 'warning').length;
+                const critical = this.fenceData.filter(f => f.status === 'critical').length;
+
+                this.updateElement('totalFences', this.fenceData.length);
+                this.updateElement('normalCount', normal);
+                this.updateElement('warningCount', warning);
+                this.updateElement('criticalCount', critical);
+            }
+
+            showAlertBanner() {
+                const criticalFences = this.fenceData.filter(f => f.status === 'critical');
+                const alertBanner = document.getElementById('alertBanner');
+                
+                if (criticalFences.length > 0 && alertBanner) {
+                    alertBanner.style.display = 'block';
+                }
+            }
+
+            loadSelectedFenceDetails() {
+                const selectedFenceId = localStorage.getItem('selectedFenceId') || 'KSEB002';
+                const fence = this.fenceData.find(f => f.id === selectedFenceId);
+                
+                if (!fence) return;
+
+                // Store fence data for details page
+                localStorage.setItem('selectedFenceData', JSON.stringify(fence));
+            }
+
+            startRealTimeUpdates() {
+                setInterval(() => {
+                    // Simulate real-time data changes
+                    this.fenceData.forEach(fence => {
+                        const variation = (Math.random() - 0.5) * 0.2;
+                        fence.current = Math.max(0, fence.current + variation);
+                        fence.voltage = Math.max(0, Math.min(10, fence.voltage + (Math.random() - 0.5) * 0.1));
+                        
+                        // Update status based on current
+                        if (fence.current > this.alertThreshold) {
+                            fence.status = 'critical';
+                        } else if (fence.current > this.warningThreshold) {
+                            fence.status = 'warning';
+                        } else {
+                            fence.status = 'normal';
+                        }
+                    });
+
+                    if (this.currentPage === 'dashboard') {
+                        this.renderFenceGrid();
+                        this.updateStatistics();
+                    }
+                }, 5000);
+            }
+
+            updateElement(id, value) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                }
+            }
+
+            // Chatbot functionality
+            initChatbot() {
+                this.chatbot = new KSEBChatbot();
+            }
+
+            // Get fence data by ID
+            getFenceById(id) {
+                return this.fenceData.find(f => f.id === id);
+            }
+        }
+
+        // Global functions
+        function openFenceDetails(fenceId) {
+            localStorage.setItem('selectedFenceId', fenceId);
+            window.location.href = 'fence-details.html';
+        }
+
+        function openGoogleMaps(fenceId) {
+            const fence = monitoringSystem.getFenceById(fenceId);
+            if (fence && fence.coordinates) {
+                monitoringSystem.openGoogleMaps(fence.coordinates, fence.coordinates.address);
+            }
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        function refreshData() {
+            window.location.reload();
+        }
+
+        function closeAlert() {
+            const alertBanner = document.getElementById('alertBanner');
+            if (alertBanner) {
+                alertBanner.style.display = 'none';
+            }
+        }
+
+        // AI Chatbot Class (simplified for this example)
+        class KSEBChatbot {
+            constructor() {
+                this.isOpen = false;
+                this.isMinimized = false;
+                this.responses = {
+                    greeting: "Hello! I'm the KSEB AI Assistant. I can help you understand fence readings, explain alerts, and guide you through our monitoring system. How can I assist you today?",
+                    location: "You can now click on any fence location (📍) to view it on Google Maps! This helps you navigate to the exact fence location for maintenance or inspection.",
+                    maps: "Our new Google Maps integration shows the precise location of each fence. Simply click the location name with the 📍 icon to open Google Maps.",
+                    default: "I understand you're asking about our fence monitoring system. Could you be more specific? I can help with current readings, alerts, safety thresholds, dashboard navigation, or the new Google Maps location feature."
+                };
+                
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                const chatBubble = document.getElementById('chatBubble');
+                const closeBtn = document.getElementById('closeBtn');
+                const minimizeBtn = document.getElementById('minimizeBtn');
+                const sendBtn = document.getElementById('sendBtn');
+                const chatInput = document.getElementById('chatInput');
+
+                if (chatBubble) chatBubble.addEventListener('click', () => this.toggleChat());
+                if (closeBtn) closeBtn.addEventListener('click', () => this.closeChat());
+                if (minimizeBtn) minimizeBtn.addEventListener('click', () => this.minimizeChat());
+                if (sendBtn) sendBtn.addEventListener('click', () => this.sendMessage());
+                if (chatInput) {
+                    chatInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.sendMessage();
+                    });
+                }
+            }
+
+            toggleChat() {
+                const chatWindow = document.getElementById('chatWindow');
+                const chatBubble = document.getElementById('chatBubble');
+                
+                if (!this.isOpen) {
+                    if (chatWindow) chatWindow.classList.add('active');
+                    if (chatBubble) chatBubble.style.display = 'none';
+                    this.isOpen = true;
+                } else {
+                    this.closeChat();
+                }
+            }
+
+            closeChat() {
+                const chatWindow = document.getElementById('chatWindow');
+                const chatBubble = document.getElementById('chatBubble');
+                
+                if (chatWindow) chatWindow.classList.remove('active');
+                if (chatBubble) chatBubble.style.display = 'flex';
+                this.isOpen = false;
+                this.isMinimized = false;
+            }
+
+            minimizeChat() {
+                this.isMinimized = !this.isMinimized;
+                const chatWindow = document.getElementById('chatWindow');
+                
+                if (chatWindow) {
+                    if (this.isMinimized) {
+                        chatWindow.style.height = '80px';
+                    } else {
+                        chatWindow.style.height = '500px';
+                    }
+                }
+            }
+
+            async sendMessage() {
+                const chatInput = document.getElementById('chatInput');
+                if (!chatInput) return;
+                
+                const message = chatInput.value.trim();
+                if (!message) return;
+                
+                this.addMessage(message, 'user');
+                chatInput.value = '';
+                
+                this.showTypingIndicator();
+                
+                setTimeout(() => {
+                    this.hideTypingIndicator();
+                    const response = this.generateResponse(message);
+                    this.addMessage(response, 'bot');
+                }, 1500);
+            }
+
+            addMessage(content, sender) {
+                const chatMessages = document.getElementById('chatMessages');
+                if (!chatMessages) return;
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                
+                messageDiv.innerHTML = `
+                    <div class="message-content">${content}</div>
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            showTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.classList.add('active');
+                }
+            }
+
+            hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.classList.remove('active');
+                }
+            }
+
+            generateResponse(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                if (lowerMessage.includes('location') || lowerMessage.includes('map') || lowerMessage.includes('where')) {
+                    return this.responses.location;
+                } else if (lowerMessage.includes('google') || lowerMessage.includes('navigate')) {
+                    return this.responses.maps;
+                } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                    return this.responses.greeting;
+                } else {
+                    return this.responses.default;
+                }
+            }
+        }
+
+        // Initialize the system when DOM is loaded
+        let monitoringSystem;
+        document.addEventListener('DOMContentLoaded', function() {
+            monitoringSystem = new KSEBMonitoringSystem();
+        });
+    </script>
+
+    <style>
+        /* Additional styles for Google Maps integration */
+        .fence-location .location-text {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .fence-location .location-text:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .fence-location .location-text:active {
+            color: #004085;
+        }
+        
+        /* Ensure location text is clickable */
+        .fence-card .fence-location {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+</body>
+</html>
